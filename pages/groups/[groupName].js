@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { Card, Typography, Select, Row, Col, Statistic, Space, Divider } from 'antd';
 import { ArrowLeftOutlined } from '@ant-design/icons';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceLine } from 'recharts';
-import { groups as initialGroups } from '../../data/groups';
+import { fetchGroups, fetchGroupByName } from '../../lib/groupsApi';
 
 const { Title, Text, Paragraph } = Typography;
 
@@ -186,13 +186,26 @@ export default function GroupDetailPage({ group }) {
   );
 }
 
-export async function getServerSideProps({ params }) {
-  const decodedName = decodeURIComponent(params.groupName);
-  const group = initialGroups.find((item) => item.name === decodedName);
+export async function getStaticPaths() {
+  const groups = await fetchGroups();
+
+  return {
+    paths: groups.map((group) => ({
+      params: {
+        groupName: group.name
+      }
+    })),
+    fallback: false
+  };
+}
+
+export async function getStaticProps({ params }) {
+  const group = await fetchGroupByName(params.groupName);
 
   return {
     props: {
       group: group ?? null
-    }
+    },
+    revalidate: 60 * 60 * 24 * 30 // ререндерить раз в месяц
   };
 }

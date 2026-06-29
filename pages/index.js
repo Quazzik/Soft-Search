@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { Card, Input, Typography, Row, Col, Tag, Space, Empty } from 'antd';
 import { RiseOutlined, SearchOutlined } from '@ant-design/icons';
 import styles from '../styles/Home.module.css';
-import { groups as initialGroups } from '../data/groups';
+import { fetchGroups } from '../lib/groupsApi';
 
 const { Title, Paragraph, Text } = Typography;
 
@@ -98,10 +98,13 @@ export default function Home({ groups }) {
   );
 }
 
-export function getServerSideProps() {
+export async function getStaticProps() {
+  const groups = await fetchGroups();
+
   return {
     props: {
-      groups: initialGroups
-    }
+      groups
+    },
+    revalidate: 60 * 60 * 24 * 30 // ререндерить раз в месяц
   };
 }
