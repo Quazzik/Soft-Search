@@ -1,7 +1,12 @@
 import { useMemo, useState } from 'react';
 import Fuse from 'fuse.js';
+import Link from 'next/link';
+import { Card, Input, Typography, Row, Col, Tag, Space, Empty } from 'antd';
+import { RiseOutlined, SearchOutlined } from '@ant-design/icons';
 import styles from '../styles/Home.module.css';
 import { groups as initialGroups } from '../data/groups';
+
+const { Title, Paragraph, Text } = Typography;
 
 export default function Home({ groups }) {
   const [query, setQuery] = useState('');
@@ -13,7 +18,6 @@ export default function Home({ groups }) {
         { name: 'items', weight: 0.3 }
       ],
       threshold: 0.35,
-      includeScore: true,
       ignoreLocation: true,
       minMatchCharLength: 1
     });
@@ -31,34 +35,65 @@ export default function Home({ groups }) {
   return (
     <main className={styles.page}>
       <section className={styles.hero}>
-        <h1>Soft Search на Next.js</h1>
-        <p>Ищите группы и элементы сразу, без строгих совпадений и с поддержкой опечаток.</p>
-        <input
-          className={styles.search}
-          type="search"
+        <Title level={1}>Soft Search</Title>
+        <Paragraph>Мягкий поиск по группам и объектам с аналитикой по кварталам и прогнозом продаж.</Paragraph>
+        <Input
+          size="large"
+          prefix={<SearchOutlined />}
+          placeholder="Поиск по группе или объекту..."
           value={query}
           onChange={(event) => setQuery(event.target.value)}
-          placeholder="Поиск по группам и элементам..."
-          aria-label="Поиск по группам и элементам"
+          className={styles.search}
         />
       </section>
 
-      <section className={styles.grid}>
+      <Row gutter={[20, 20]}>
         {filteredGroups.length > 0 ? (
-          filteredGroups.map((group) => (
-            <article key={group.name} className={styles.card}>
-              <h2>{group.name}</h2>
-              <ul>
-                {group.items.map((item) => (
-                  <li key={item}>{item}</li>
-                ))}
-              </ul>
-            </article>
-          ))
+          filteredGroups.map((group) => {
+            const peakMetric = (group.objects ?? [])
+              .flatMap((object) => object.metrics)
+              .filter((metric) => metric.fact > 0)
+              .sort((a, b) => b.fact - a.fact)[0];
+            return (
+              <Col xs={24} md={12} lg={8} key={group.name}>
+                <Link href={`/groups/${encodeURIComponent(group.name)}`} legacyBehavior>
+                  <a className={styles.linkCard}>
+                    <Card className={styles.card} hoverable>
+                      <Space direction="vertical" size="middle" style={{ width: '100%' }}>
+                        <div className={styles.cardHeader}>
+                          <Title level={4} style={{ margin: 0 }}>{group.name}</Title>
+                          <Tag color="purple">Аналитика</Tag>
+                        </div>
+                        <div>
+                          <Text type="secondary">Пик продаж</Text>
+                          <div className={styles.metricValue}>{peakMetric?.fact ?? 0}</div>
+                        </div>
+                        <div className={styles.metaRow}>
+                          <span>План: {peakMetric?.plan ?? 0}</span>
+                          <span>Факт: {peakMetric?.fact ?? 0}</span>
+                        </div>
+                        <div className={styles.itemsList}>
+                          {group.items.map((item) => (
+                            <span key={item}>{item}</span>
+                          ))}
+                        </div>
+                        <div className={styles.footerHint}>
+                          <RiseOutlined />
+                          Открыть детальную страницу
+                        </div>
+                      </Space>
+                    </Card>
+                  </a>
+                </Link>
+              </Col>
+            );
+          })
         ) : (
-          <p className={styles.empty}>Ничего не найдено. Попробуйте другой запрос.</p>
+          <Col span={24}>
+            <Empty description="Ничего не найдено. Попробуйте другой запрос." />
+          </Col>
         )}
-      </section>
+      </Row>
     </main>
   );
 }
