@@ -1,0 +1,32 @@
+# Зависимости
+/node_modules/
+.pnp.js
+.pnp.js
+
+# Сборка и кэш Next.js
+.next/
+/out/
+
+# Локальные настройки и переменные окружения
+.env*.local
+.env
+
+# Логи и отладочные файлы
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Кэш Vercel
+.vercel
+
+# Файлы TypeScript
+*.tsbuildinfo
+next-env.d.ts
+
+# Системные файлы
+.DS_Store
+*.pem
+
+# Настройки редакторов
+.vscode/
+.idea/
